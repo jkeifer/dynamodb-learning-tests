@@ -1,5 +1,7 @@
 # Demo DynamoBD concepts for learning
 
+[![test-status-image]][test-status]
+
 ## Getting started
 
 This project is designed to use local DynamoDB. Using the docker image is easy
@@ -74,3 +76,7 @@ Please open an issue for an bugs. PRs are also welcome.
 Additional test cases can be proposed via issues or PRs, however please
 recognize this is inherently a personal project and not all ideas and/or test
 implementations will fit the project's objectives or code style.
+
+
+[test-status-image]: https://github.com/jkeifer/dynamodb-learning-tests/actions/workflows/run-tests.yml/badge.svg
+[test-status]: https://github.com/jkeifer/dynamodb-learning-tests/actions/workflows/run-tests.yml
