@@ -56,6 +56,17 @@ be difficult within bash, but it is not unexpected to use a bash script as the
 `run` to coordinate the database setup and run queries while calling out to
 something like python for test case evaluation.
 
+Note that the bash lib includes a function `setup_table` which will, by
+default, add an `EXIT` trap to delete the table. This is to enable automatic
+clean up of the table at the end of the test. It is strongly recommended to
+retain this behaivor, but during development it can be useful to retain a test
+database. To do so, add a file `vars` in the test directoy and ensure it has
+`CLEANUP=false` (or any other value other than `true`), and the cleanup trap
+will not be set.
+
+Be aware `setup_table` will also attempt to delete the table before creating
+it, to ensure the test runs with no previous state.
+
 Further instructions are left intentionally sparse as this is a brand new
 project with no userbase.
 

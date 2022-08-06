@@ -8,7 +8,7 @@ SCHEMA_FILE="${TEST_DIR}/table-schema.json"
 
 
 start_message
-setup_test
+setup_table
 
 items=()
 items+=("$(cat "${TEST_DIR}/fixtures/first-order.json")")

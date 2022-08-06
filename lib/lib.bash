@@ -58,7 +58,7 @@ start_message() {
     echo2 -e "${BLUE}${TEST_NAME}:${NC} ${@:-beginning}"
 }
 
-setup_test() {
+setup_table() {
     maybe_delete_table \
         --table-name "${TEST_NAME}"
     create_table \
