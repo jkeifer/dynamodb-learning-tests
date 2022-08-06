@@ -1,0 +1,2 @@
+ENDPOINT='http://localhost:8000'
+REGION='us-west-2'

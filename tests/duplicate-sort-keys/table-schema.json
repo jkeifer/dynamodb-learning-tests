@@ -1,0 +1,45 @@
+{
+  "AttributeDefinitions": [
+    {
+      "AttributeName": "OrderId",
+      "AttributeType": "S"
+    },
+    {
+      "AttributeName": "CustomerId",
+      "AttributeType": "S"
+    },
+    {
+      "AttributeName": "OrderDatetime",
+      "AttributeType": "S"
+    }
+  ],
+  "KeySchema": [
+    {
+      "AttributeName": "CustomerId",
+      "KeyType": "HASH"
+    },
+    {
+      "AttributeName": "OrderId",
+      "KeyType": "RANGE"
+    }
+  ],
+  "GlobalSecondaryIndexes": [
+    {
+      "IndexName": "ByOrderDatetime",
+      "KeySchema": [
+        {
+          "AttributeName": "CustomerId",
+          "KeyType": "HASH"
+        },
+        {
+          "AttributeName": "OrderDatetime",
+          "KeyType": "RANGE"
+        }
+      ],
+      "Projection": {
+        "ProjectionType": "ALL"
+      }
+    }
+  ],
+  "BillingMode": "PAY_PER_REQUEST"
+}

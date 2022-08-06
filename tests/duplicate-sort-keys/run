@@ -1,0 +1,106 @@
+#!/usr/bin/env bash
+
+TEST_DIR="$(realpath -m "$(dirname "${BASH_SOURCE[0]}")")"
+TEST_NAME="$(basename "${TEST_DIR}")"
+SCHEMA_FILE="${TEST_DIR}/table-schema.json"
+
+. "${LIB_DIR}/lib.bash"
+
+
+start_message
+setup_test
+
+items=()
+items+=("$(cat "${TEST_DIR}/fixtures/first-order.json")")
+items+=("$(cat "${TEST_DIR}/fixtures/second-order.json")")
+items+=("$(cat "${TEST_DIR}/fixtures/duplicate-orderId-datetime.json")")
+for item in "${items[@]}"; do
+    echo >&2 "Putting item: '${item}'"
+    aws dynamodb put-item \
+        --table-name "${TEST_NAME}" \
+        --cli-input-json "$item"
+done
+
+customer_id="$(<<<"${items[0]}" jq -r '.Item.CustomerId.S')"
+expected_order_datetime="$(<<<"${items[1]}" jq -r '.Item.OrderDatetime.S')"
+
+primary_index_items="$(
+    aws dynamodb query \
+        --table-name "${TEST_NAME}" \
+        --key-condition-expression "CustomerId = :cid" \
+        --expression-attribute-values '{
+            ":cid": {
+                "S": "'"${customer_id}"'"
+            }
+        }'
+)"
+
+
+echo2 "Primary ingest items for customer" 
+echo2 "${primary_index_items}"
+
+secondary_index_items="$(
+    aws dynamodb query \
+        --table-name "${TEST_NAME}" \
+        --index-name ByOrderDatetime \
+        --key-condition-expression "CustomerId = :cid AND OrderDatetime = :odt" \
+        --expression-attribute-values '{
+            ":cid": {
+                "S": "'"${customer_id}"'"
+            },
+            ":odt": {
+                "S": "'"${expected_order_datetime}"'"
+            }
+        }'
+)"
+
+echo2 "Secondary index items for customer with datetime sort key" 
+echo2 "${secondary_index_items}"
+
+
+## TEST SECTION ##
+tests_pass=true
+
+test_case "check number of items returned from primary index query"
+item_count=$(<<<"${primary_index_items}" jq -r '.Items | length')
+expected=2
+if [ "${item_count}" -eq "${expected}" ]; then
+    test_ok "Expected number of items return from primary index: ${item_count}"
+else
+    test_nok "Unexpected number of items returned from primary index: ${item_count}, expected ${expected}"
+    tests_pass=false
+fi
+
+test_case "check number of items returned from secondary index query"
+item_count=$(<<<"${secondary_index_items}" jq -r '.Items | length')
+expected=2
+if [ "${item_count}" -eq "${expected}" ]; then
+    test_ok "Expected number of items return from secondary index: ${item_count}"
+else
+    test_nok "Unexpected number of items returned from secondary index: ${item_count}, expected ${expected}"
+    tests_pass=false
+fi
+
+test_case "check all primary index query result match expected customer ID"
+all_match=true
+for cid in $(<<<"${primary_index_items}" jq -r '.Items[].CustomerId.S'); do
+    [ "${cid}" == "${customer_id}" ] || {
+        test_nok "Unexpected customer ID: ${cid}, expected ${customer_id}"
+        all_match=false
+        tests_pass=false
+    }
+done
+$all_match && test_ok "All primary index records have expected customer ID: ${customer_id}"
+
+test_case "check all secondary index query results match expected order datetime"
+all_match=true
+for odt in $(<<<"${secondary_index_items}" jq -r '.Items[].OrderDatetime.S'); do
+    [ "${odt}" == "${expected_order_datetime}" ] || {
+        test_nok "Unexpected order datetime: ${odt}, expected ${expected_order_datetime}"
+        all_match=false
+        tests_pass=false
+    }
+done
+$all_match && test_ok "All records have expected order datetime: ${expected_order_datetime}"
+
+tests_end $tests_pass
