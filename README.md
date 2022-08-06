@@ -1,4 +1,4 @@
-# Automated tests to demonstrate DynamoBD concepts for learning
+# Demo DynamoBD concepts for learning
 
 ## Getting started
 
