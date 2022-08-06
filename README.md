@@ -23,7 +23,7 @@ Running the tests is easy:
 ❯ ./run-tests
 ```
 
-That script will find a tests in the `tests/` directory and execute them.
+That script will find all tests in the `tests/` directory and execute them.
 
 Individual tests can be executed via the `run` script, for example:
 
