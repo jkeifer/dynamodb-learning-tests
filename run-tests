@@ -13,4 +13,4 @@ for test_dir in "${ROOT_DIR}"/tests/*; do
     fi
 done
 
-exit $all_success
+$all_success; exit
