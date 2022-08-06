@@ -5,7 +5,12 @@ set -euo pipefail
 export ROOT_DIR="$(realpath -m "$(dirname "${BASH_SOURCE[0]}")")"
 export LIB_DIR="${ROOT_DIR}/lib"
 
+all_success=true
 for test_dir in "${ROOT_DIR}"/tests/*; do
     test_run="${test_dir}/run"
-    [ -f "${test_run}" ] && [ -x "${test_run}" ] && "$test_run" ||:
+    if [ -f "${test_run}" ] && [ -x "${test_run}" ]; then
+        "$test_run" || all_success=false
+    fi
 done
+
+exit $all_success
